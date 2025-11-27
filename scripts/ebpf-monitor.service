@@ -1,0 +1,15 @@
+[Unit]
+Description=eBPF System Call Monitor
+After=network.target auditd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ebpf-monitor
+Restart=always
+RestartSec=5s
+# Optional: run as root (required for eBPF)
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

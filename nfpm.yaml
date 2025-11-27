@@ -1,0 +1,27 @@
+name: "ebpf-monitor"
+arch: "amd64"
+platform: "linux"
+version: "1.0.0"
+section: "default"
+maintainer: "Amish <amish@u.nus.edu>"
+description: "eBPF-based system auditing tool"
+license: "GPLv3"
+
+contents:
+  - src: ./ebpf-monitor
+    dst: /usr/bin/ebpf-monitor
+    file_info:
+      mode: 0755
+
+  - src: ./config/config.json
+    dst: /etc/ebpf-monitor/config.json
+    type: config
+    file_info:
+      mode: 0644
+
+  - src: ./scripts/ebpf-monitor.service
+    dst: /lib/systemd/system/ebpf-monitor.service
+
+scripts:
+  postinstall: ./scripts/postinstall.sh
+  preremove: ./scripts/preremove.sh

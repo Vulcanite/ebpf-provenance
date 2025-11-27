@@ -1,0 +1,12 @@
+# --- eBPF Generated Files (bpf2go) ---
+*.o
+
+# --- Packaging (nfpm) ---
+*.deb
+*.rpm
+
+# --- Editors/IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
