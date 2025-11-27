@@ -287,9 +287,10 @@ func main() {
 		}
 
 		raw := *(*bpfSoEvent)(unsafe.Pointer(&record.RawSample[0]))
+		ts := time.Unix(0, int64(raw.Timestamp)).UTC()
 		evt := AuditEvent{
 			TimestampNs: int64(raw.Timestamp),
-			Datetime:    time.Now().Format(time.RFC3339),
+			Datetime:    ts.Format(time.RFC3339Nano),
 			Pid:         raw.Pid,
 			Ppid:        raw.Ppid,
 			Uid:         raw.Uid,
