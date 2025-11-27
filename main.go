@@ -161,10 +161,9 @@ func setupES() {
 
 	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Client:        es,
-		Index:         cfg.ESConfig.Index + "-" + time.Now().Format("2006.01.02"),
+		Index:         cfg.ESConfig.Index,
 		FlushBytes:    1000000, // 1MB
 		FlushInterval: 1 * time.Second,
-		// 2. LOG BACKGROUND ERRORS
 		OnError: func(ctx context.Context, err error) {
 			log.Printf("[!] Bulk Indexer Error: %v", err)
 		},
