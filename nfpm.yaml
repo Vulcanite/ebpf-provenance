@@ -4,7 +4,7 @@ platform: "linux"
 version: "1.0.0"
 section: "default"
 maintainer: "Amish <amish@u.nus.edu>"
-description: "eBPF-based system auditing tool"
+description: "eBPF-based system monitoring tool"
 license: "GPLv3"
 
 contents:
@@ -14,7 +14,7 @@ contents:
       mode: 0755
 
   - src: ./config/config.json
-    dst: /etc/ebpf-monitor/config.json
+    dst: /var/config.json
     type: config
     file_info:
       mode: 0644

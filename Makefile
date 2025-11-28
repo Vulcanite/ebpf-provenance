@@ -9,7 +9,7 @@ SCRIPTS_DIR := scripts
 # Detect architecture for BPF
 ARCH := $(shell uname -m | sed 's/x86_64/x86/' | sed 's/aarch64/arm64/' | sed 's/ppc64le/powerpc/' | sed 's/mips.*/mips/')
 
-.PHONY: all generate build install uninstall clean logs
+.PHONY: all generate build install uninstall clean logs package
 
 # Default target
 all: generate build
@@ -22,7 +22,7 @@ generate:
 # 2. Build the Go binary
 build: generate
 	@echo "[*] Building binary..."
-	go build -o $(BINARY_NAME)
+	go build -o $(BINARY_NAME) ./cmd/ebpf-monitor
 
 # 3. Install to system (Requires Root)
 install: build
@@ -62,7 +62,8 @@ logs:
 clean:
 	@echo "[*] Cleaning up..."
 	rm -f $(BINARY_NAME)
-	rm -f bpf_bpf.go *.o
+	rm -f cmd/ebpf-monitor/bpf_bpf.go cmd/ebpf-monitor/bpf_bpf.o
+	rm -rf build/
 
 # 5. Full Uninstall
 uninstall:
@@ -73,3 +74,11 @@ uninstall:
 	rm -f $(SYSTEMD_DIR)/$(SERVICE_NAME).service
 	systemctl daemon-reload
 	@echo "[+] Binary and Service removed. Config at $(CONFIG_DIR) was kept for safety."
+
+# 6. Build Debian Package
+package: build
+	@echo "[*] Building Debian package with nfpm..."
+	@mkdir -p build
+	@which nfpm > /dev/null || (echo "[!] nfpm not found. Install it first." && exit 1)
+	nfpm package --packager deb --target build/
+	@echo "[+] Package created in build/ directory"

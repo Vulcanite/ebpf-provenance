@@ -21,7 +21,7 @@ import ollama_agent
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 CONFIG_PATH = "/var/config.json"
-ANALYZER_SCRIPT_PATH = "analyzer.py"
+ANALYZER_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "analyzer.py")
 
 def load_config():
     if not os.path.exists(CONFIG_PATH):
@@ -657,27 +657,6 @@ with tab4:
         if not is_connected:
             st.warning("⚠️ Ollama not connected. Start Ollama with: `ollama serve`")
 
-    # Test connection and debug info
-    col_test1, col_test2 = st.columns(2)
-
-    with col_test1:
-        if st.button("🧪 Test Ollama Connection"):
-            with st.spinner("Testing connection..."):
-                test_response = ollama_agent.query_ollama("Say 'Hello, I am working!' in one sentence.", model=selected_model, host=ollama_host)
-                st.info(f"**Test Response:**\n\n{test_response}")
-
-    with col_test2:
-        if st.button("🔍 Show API Info"):
-            st.code(f"""Ollama API Endpoints:
-- Host: {ollama_host}
-- Model: {selected_model}
-- Tags endpoint: {ollama_host}/api/tags
-- Generate endpoint: {ollama_host}/api/generate
-            """, language="text")
-
-    st.markdown("---")
-
-    # Load attack context if available
     if 'analyzer_stats' in st.session_state or 'text_summary' in st.session_state:
         # Auto-load context when switching from Tab 2
         if st.session_state.get('switch_to_ai_tab') and not st.session_state.get('ai_context_loaded'):
