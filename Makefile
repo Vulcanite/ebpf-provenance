@@ -1,7 +1,7 @@
 BINARY_NAME := ebpf-monitor
 SERVICE_NAME := ebpf-monitor
 INSTALL_BIN := /usr/bin/$(SERVICE_NAME)
-CONFIG_DIR := /etc/ebpf-monitor
+CONFIG_DIR := /var/
 CONFIG_SRC := config/config.json
 SYSTEMD_DIR := /lib/systemd/system
 SCRIPTS_DIR := scripts
