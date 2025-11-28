@@ -292,7 +292,7 @@ func main() {
 
 		evt := AuditEvent{
 			TimestampNs:    int64(raw.Timestamp),
-			EpochTimestamp: time.Now().UnixNano(),
+			EpochTimestamp: time.Now().UnixMilli(),
 			Datetime:       time.Now().UTC().Format(time.RFC3339Nano),
 			Pid:            raw.Pid,
 			Ppid:           raw.Ppid,
