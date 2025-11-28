@@ -45,14 +45,8 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Package version: $VERSION"
 
-      - name: Build Go binary
-        run: make build
-
       - name: Build deb package
-        env:
-          PACKAGE_VERSION: ${{ steps.get_version.outputs.version }}
-        run: |
-          nfpm package --packager deb --target build/
+        run: make VERSION=${{ steps.get_version.outputs.version }} package
 
       - name: List build artifacts
         run: ls -lh build/

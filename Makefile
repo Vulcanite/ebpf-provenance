@@ -6,6 +6,9 @@ CONFIG_SRC := config/config.json
 SYSTEMD_DIR := /lib/systemd/system
 SCRIPTS_DIR := scripts
 
+# Version (can be overridden: make VERSION=1.2.3 package)
+VERSION ?= 1.0.0
+
 # Detect architecture for BPF
 ARCH := $(shell uname -m | sed 's/x86_64/x86/' | sed 's/aarch64/arm64/' | sed 's/ppc64le/powerpc/' | sed 's/mips.*/mips/')
 
@@ -77,8 +80,8 @@ uninstall:
 
 # 6. Build Debian Package
 package: build
-	@echo "[*] Building Debian package with nfpm..."
+	@echo "[*] Building Debian package with nfpm (version: $(VERSION))..."
 	@mkdir -p build
 	@which nfpm > /dev/null || (echo "[!] nfpm not found. Install it first." && exit 1)
-	nfpm package --packager deb --target build/
+	PACKAGE_VERSION=$(VERSION) nfpm package --packager deb --target build/
 	@echo "[+] Package created in build/ directory"
