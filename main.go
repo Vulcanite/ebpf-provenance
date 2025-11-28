@@ -125,7 +125,6 @@ func setupES() {
 		protocol = "https"
 	}
 
-	// Sanitize Host: Remove protocol if user added it in JSON to avoid "https://https://..."
 	host := cfg.ESConfig.Host
 	host = strings.TrimPrefix(host, "http://")
 	host = strings.TrimPrefix(host, "https://")
@@ -149,11 +148,10 @@ func setupES() {
 		return
 	}
 
-	// 1. VERIFY CONNECTION NOW (Fail Fast)
 	info, err := es.Info()
 	if err != nil {
 		log.Printf("[!] ES Connection Failed: %v", err)
-		log.Printf("[!] Check your Password, Host, and SSL settings in config.json")
+		log.Printf("[!] Check your Password, Host, and SSL settings")
 		return
 	}
 	defer info.Body.Close()
@@ -191,7 +189,6 @@ func main() {
 		setupES()
 	}
 
-	// SIGHUP for Logrotate
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -209,7 +206,6 @@ func main() {
 		}
 	}()
 
-	// C. CO-RE: Remove Rlimit & Load Objects
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal(err)
 	}
@@ -220,7 +216,6 @@ func main() {
 	}
 	defer objs.Close()
 
-	// D. Attach Tracepoints
 	var links []link.Link
 
 	attach := func(group, name string, prog *ebpf.Program) {
@@ -232,22 +227,31 @@ func main() {
 		links = append(links, l)
 	}
 
+	// EXECVE
 	attach("syscalls", "sys_enter_execve", objs.SysEnterExecve)
 
+	// OPEN
 	attach("syscalls", "sys_enter_openat", objs.SysEnterOpenat)
 	attach("syscalls", "sys_exit_openat", objs.SysExitOpenat)
-
 	attach("syscalls", "sys_enter_openat2", objs.SysEnterOpenat2)
 	attach("syscalls", "sys_exit_openat2", objs.SysExitOpenat2)
 
+	// WRITE
 	attach("syscalls", "sys_enter_write", objs.SysEnterWrite)
 	attach("syscalls", "sys_exit_write", objs.SysExitWrite)
 
-	attach("syscalls", "sys_enter_unlinkat", objs.SysEnterUnlinkat)
-	attach("syscalls", "sys_enter_connect", objs.SysEnterConnect)
+	// READ
+	attach("syscalls", "sys_enter_read", objs.SysEnterRead)
+	attach("syscalls", "sys_exit_read", objs.SysExitRead)
 
+	// CLONE
 	attach("syscalls", "sys_enter_clone", objs.SysEnterClone)
 	attach("syscalls", "sys_enter_clone3", objs.SysEnterClone3)
+
+	// OTHERS
+	attach("syscalls", "sys_enter_unlinkat", objs.SysEnterUnlinkat)
+	attach("syscalls", "sys_enter_connect", objs.SysEnterConnect)
+	attach("syscalls", "sys_enter_vfork", objs.SysEnterVfork) // NEW
 
 	defer func() {
 		for _, l := range links {
@@ -263,14 +267,12 @@ func main() {
 	}
 	defer rd.Close()
 
-	// F. Event Loop
 	for {
 		record, err := rd.Read()
 		if err != nil {
 			if errors.Is(err, perf.ErrClosed) {
 				return
 			}
-
 			log.Printf("Reader error: %v", err)
 			continue
 		}
@@ -281,11 +283,12 @@ func main() {
 		}
 
 		if len(record.RawSample) < int(unsafe.Sizeof(bpfSoEvent{})) {
-			log.Printf("[!] Event too small: got %d bytes, expected %d", len(record.RawSample), unsafe.Sizeof(bpfSoEvent{}))
+			log.Printf("[!] Event too small")
 			continue
 		}
 
 		raw := *(*bpfSoEvent)(unsafe.Pointer(&record.RawSample[0]))
+
 		evt := AuditEvent{
 			TimestampNs: int64(raw.Timestamp),
 			Datetime:    time.Now().UTC().Format(time.RFC3339Nano),
@@ -303,7 +306,8 @@ func main() {
 			evt.Error, evt.ErrorCode = getErrno(raw.Ret)
 		}
 
-		if evt.Syscall == "write" {
+		// Logic for WRITE and READ
+		if evt.Syscall == "write" || evt.Syscall == "read" {
 			evt.Count = raw.Count
 			evt.BytesRW = raw.BytesRw
 			if evt.Fd == 0 {
@@ -327,10 +331,8 @@ func main() {
 			}
 		}
 
-		// 3. Write Output
 		jsonBytes, _ := json.Marshal(evt)
 
-		// File Output
 		fileLock.Lock()
 		if outputFile != nil {
 			outputFile.Write(jsonBytes)
@@ -338,13 +340,11 @@ func main() {
 		}
 		fileLock.Unlock()
 
-		// ES Output
 		if bulkIndexer != nil {
 			bulkIndexer.Add(context.Background(), esutil.BulkIndexerItem{
 				Action: "index",
 				Body:   bytes.NewReader(jsonBytes),
 				OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
-					// Logs item-level errors (e.g. mapping conflicts, 400 Bad Request)
 					if err != nil {
 						log.Printf("ES Index Error: %v", err)
 					} else {

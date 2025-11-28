@@ -25,7 +25,7 @@ type bpfSoEvent struct {
 	Pid       uint32
 	Ppid      uint32
 	Uid       uint32
-	Comm      [32]int8
+	Comm      [64]int8
 	Syscall   [32]int8
 	Filename  [256]int8
 	_         [4]byte
@@ -88,10 +88,13 @@ type bpfProgramSpecs struct {
 	SysEnterExecve   *ebpf.ProgramSpec `ebpf:"sys_enter_execve"`
 	SysEnterOpenat   *ebpf.ProgramSpec `ebpf:"sys_enter_openat"`
 	SysEnterOpenat2  *ebpf.ProgramSpec `ebpf:"sys_enter_openat2"`
+	SysEnterRead     *ebpf.ProgramSpec `ebpf:"sys_enter_read"`
 	SysEnterUnlinkat *ebpf.ProgramSpec `ebpf:"sys_enter_unlinkat"`
+	SysEnterVfork    *ebpf.ProgramSpec `ebpf:"sys_enter_vfork"`
 	SysEnterWrite    *ebpf.ProgramSpec `ebpf:"sys_enter_write"`
 	SysExitOpenat    *ebpf.ProgramSpec `ebpf:"sys_exit_openat"`
 	SysExitOpenat2   *ebpf.ProgramSpec `ebpf:"sys_exit_openat2"`
+	SysExitRead      *ebpf.ProgramSpec `ebpf:"sys_exit_read"`
 	SysExitWrite     *ebpf.ProgramSpec `ebpf:"sys_exit_write"`
 }
 
@@ -102,6 +105,7 @@ type bpfMapSpecs struct {
 	EventHeap *ebpf.MapSpec `ebpf:"event_heap"`
 	Events    *ebpf.MapSpec `ebpf:"events"`
 	OpenData  *ebpf.MapSpec `ebpf:"open_data"`
+	ReadData  *ebpf.MapSpec `ebpf:"read_data"`
 	WriteData *ebpf.MapSpec `ebpf:"write_data"`
 }
 
@@ -135,6 +139,7 @@ type bpfMaps struct {
 	EventHeap *ebpf.Map `ebpf:"event_heap"`
 	Events    *ebpf.Map `ebpf:"events"`
 	OpenData  *ebpf.Map `ebpf:"open_data"`
+	ReadData  *ebpf.Map `ebpf:"read_data"`
 	WriteData *ebpf.Map `ebpf:"write_data"`
 }
 
@@ -143,6 +148,7 @@ func (m *bpfMaps) Close() error {
 		m.EventHeap,
 		m.Events,
 		m.OpenData,
+		m.ReadData,
 		m.WriteData,
 	)
 }
@@ -164,10 +170,13 @@ type bpfPrograms struct {
 	SysEnterExecve   *ebpf.Program `ebpf:"sys_enter_execve"`
 	SysEnterOpenat   *ebpf.Program `ebpf:"sys_enter_openat"`
 	SysEnterOpenat2  *ebpf.Program `ebpf:"sys_enter_openat2"`
+	SysEnterRead     *ebpf.Program `ebpf:"sys_enter_read"`
 	SysEnterUnlinkat *ebpf.Program `ebpf:"sys_enter_unlinkat"`
+	SysEnterVfork    *ebpf.Program `ebpf:"sys_enter_vfork"`
 	SysEnterWrite    *ebpf.Program `ebpf:"sys_enter_write"`
 	SysExitOpenat    *ebpf.Program `ebpf:"sys_exit_openat"`
 	SysExitOpenat2   *ebpf.Program `ebpf:"sys_exit_openat2"`
+	SysExitRead      *ebpf.Program `ebpf:"sys_exit_read"`
 	SysExitWrite     *ebpf.Program `ebpf:"sys_exit_write"`
 }
 
@@ -179,10 +188,13 @@ func (p *bpfPrograms) Close() error {
 		p.SysEnterExecve,
 		p.SysEnterOpenat,
 		p.SysEnterOpenat2,
+		p.SysEnterRead,
 		p.SysEnterUnlinkat,
+		p.SysEnterVfork,
 		p.SysEnterWrite,
 		p.SysExitOpenat,
 		p.SysExitOpenat2,
+		p.SysExitRead,
 		p.SysExitWrite,
 	)
 }
