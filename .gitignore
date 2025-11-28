@@ -11,3 +11,7 @@
 *.swp
 *.swo
 .claude/
+
+# --- Python ---
+*.pyc
+__pycache__/

@@ -483,7 +483,6 @@ with tab2:
         with col4:
             st.metric("Graph Edges", f"{stats['edges']}")
 
-    # Display graph if available
     if st.session_state.get('dot_file_path'):
         st.success("✅ Graph analysis complete!")
 
@@ -505,7 +504,6 @@ with tab2:
 
             png_file = dot_file.replace(".dot", ".png")
             try:
-                # Generate PNG if it doesn't exist
                 if not os.path.exists(png_file):
                     subprocess.run(["dot", "-Tpng", dot_file, "-o", png_file],
                                     check=True, timeout=30, capture_output=True)
@@ -537,9 +535,9 @@ with tab2:
                 )
 
 with tab3:
-    st.header("System Statistics")
-    if st.button("Generate Syscall Statistics", type="primary"):
-        with st.spinner("Analyzing syscalls..."):
+    st.header("Syscall Statistics")
+    if st.button("Generate Statistics", type="primary"):
+        with st.spinner("Analyzing events..."):
             agg_query = {
                 "query": {
                     "range": {"epoch_timestamp": {"gte": start_ms, "lte": end_ms}}
@@ -606,13 +604,6 @@ with tab3:
                         df_processes = pd.DataFrame(list(process_counts.items()), columns=["Process", "Count"])
                         df_processes = df_processes.sort_values("Count", ascending=False).head(20)
                         st.bar_chart(df_processes.set_index("Process"))
-
-                    st.markdown("#### Event Timeline (Hourly)")
-                    if timeline_data:
-                        df_timeline = pd.DataFrame(timeline_data)
-                        df_timeline['timestamp'] = pd.to_datetime(df_timeline['timestamp'])
-                        df_timeline = df_timeline.set_index('timestamp')
-                        st.line_chart(df_timeline)
 
                 else:
                     st.warning("No syscall data found in the selected timeframe")
