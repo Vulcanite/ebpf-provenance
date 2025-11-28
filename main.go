@@ -44,24 +44,25 @@ type Config struct {
 }
 
 type AuditEvent struct {
-	TimestampNs int64  `json:"timestamp_ns"`
-	Datetime    string `json:"datetime"`
-	Pid         uint32 `json:"pid"`
-	Ppid        uint32 `json:"ppid"`
-	Uid         uint32 `json:"uid"`
-	Comm        string `json:"comm"`
-	Syscall     string `json:"syscall"`
-	Filename    string `json:"filename"`
-	Fd          int64  `json:"fd"`
-	Ret         int64  `json:"ret"`
-	Error       string `json:"error,omitempty"`
-	ErrorCode   int64  `json:"error_code,omitempty"`
-	DestIP      string `json:"dest_ip,omitempty"`
-	DestIPv6    string `json:"dest_ipv6,omitempty"`
-	DestPort    uint16 `json:"dest_port,omitempty"`
-	SaFamily    string `json:"sa_family,omitempty"`
-	Count       uint64 `json:"count,omitempty"`
-	BytesRW     int64  `json:"bytes_rw,omitempty"`
+	TimestampNs    int64  `json:"timestamp_ns"`
+	EpochTimestamp int64  `json:"epoch_timestamp"`
+	Datetime       string `json:"datetime"`
+	Pid            uint32 `json:"pid"`
+	Ppid           uint32 `json:"ppid"`
+	Uid            uint32 `json:"uid"`
+	Comm           string `json:"comm"`
+	Syscall        string `json:"syscall"`
+	Filename       string `json:"filename"`
+	Fd             int64  `json:"fd"`
+	Ret            int64  `json:"ret"`
+	Error          string `json:"error,omitempty"`
+	ErrorCode      int64  `json:"error_code,omitempty"`
+	DestIP         string `json:"dest_ip,omitempty"`
+	DestIPv6       string `json:"dest_ipv6,omitempty"`
+	DestPort       uint16 `json:"dest_port,omitempty"`
+	SaFamily       string `json:"sa_family,omitempty"`
+	Count          uint64 `json:"count,omitempty"`
+	BytesRW        int64  `json:"bytes_rw,omitempty"`
 }
 
 var (
@@ -290,16 +291,17 @@ func main() {
 		raw := *(*bpfSoEvent)(unsafe.Pointer(&record.RawSample[0]))
 
 		evt := AuditEvent{
-			TimestampNs: int64(raw.Timestamp),
-			Datetime:    time.Now().UTC().Format(time.RFC3339Nano),
-			Pid:         raw.Pid,
-			Ppid:        raw.Ppid,
-			Uid:         raw.Uid,
-			Comm:        int8ToStr(raw.Comm[:]),
-			Syscall:     int8ToStr(raw.Syscall[:]),
-			Filename:    int8ToStr(raw.Filename[:]),
-			Fd:          raw.Fd,
-			Ret:         raw.Ret,
+			TimestampNs:    int64(raw.Timestamp),
+			EpochTimestamp: time.Now().UnixNano(),
+			Datetime:       time.Now().UTC().Format(time.RFC3339Nano),
+			Pid:            raw.Pid,
+			Ppid:           raw.Ppid,
+			Uid:            raw.Uid,
+			Comm:           int8ToStr(raw.Comm[:]),
+			Syscall:        int8ToStr(raw.Syscall[:]),
+			Filename:       int8ToStr(raw.Filename[:]),
+			Fd:             raw.Fd,
+			Ret:            raw.Ret,
 		}
 
 		if raw.Ret < 0 {
