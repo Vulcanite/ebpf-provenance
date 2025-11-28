@@ -178,7 +178,7 @@ func setupES() {
 }
 
 func main() {
-	configPath := "/etc/ebpf-monitor/config.json"
+	configPath := "/var/config.json"
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Fatalf("[!] Config not found at %s", configPath)
