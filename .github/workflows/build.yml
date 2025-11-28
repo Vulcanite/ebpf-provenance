@@ -2,16 +2,8 @@ name: Build Debian Package
 
 on:
   push:
-    branches:
-      - master
-      - main
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - master
-      - main
-  workflow_dispatch:
 
 jobs:
   build:
@@ -46,10 +38,19 @@ jobs:
       - name: Generate eBPF bindings
         run: make generate
 
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
+
       - name: Build Go binary
         run: make build
 
       - name: Build deb package
+        env:
+          PACKAGE_VERSION: ${{ steps.get_version.outputs.version }}
         run: |
           nfpm package --packager deb --target build/
 
