@@ -2,7 +2,6 @@
 *.o
 bpf_bpf.go
 bpf_bpf.o
-ebpf-monitor
 
 # --- Build Directory ---
 build/
