@@ -83,5 +83,7 @@ package: build
 	@echo "[*] Building Debian package with nfpm (version: $(VERSION))..."
 	@mkdir -p build
 	@which nfpm > /dev/null || (echo "[!] nfpm not found. Install it first." && exit 1)
-	PACKAGE_VERSION=$(VERSION) nfpm package --packager deb --target build/
+	@sed 's/version: .*/version: "$(VERSION)"/' nfpm.yaml > build/nfpm.yaml.tmp
+	@nfpm package --config build/nfpm.yaml.tmp --packager deb --target build/
+	@rm -f build/nfpm.yaml.tmp
 	@echo "[+] Package created in build/ directory"
