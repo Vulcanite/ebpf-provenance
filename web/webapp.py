@@ -31,7 +31,7 @@ def load_config():
         return json.load(f)
 
 def to_epoch_ms(dt: datetime) -> int:
-    return int(dt.replace(tzinfo=timezone.utc).timestamp() * 1_000)
+    return int(dt.astimezone().timestamp() * 1_000)
 
 @st.cache_resource
 def connect_elasticsearch(es_config):
@@ -221,7 +221,7 @@ def parse_analyzer_stats(stdout_text):
 
     return stats
 
-st.set_page_config(page_title="eBPF Forensic Monitor", layout="wide", page_icon="🔍")
+st.set_page_config(page_title="eBPF based Provenance Analysis", layout="wide", page_icon="🔍")
 
 st.markdown("""
 <style>
@@ -252,7 +252,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("eBPF Forensic Monitor")
+st.title("eBPF based Provenance Analysis 🔍")
 
 config = load_config()
 es_config = config.get("es_config", {})
@@ -484,8 +484,6 @@ with tab2:
             st.metric("Graph Edges", f"{stats['edges']}")
 
     if st.session_state.get('dot_file_path'):
-        st.success("✅ Graph analysis complete!")
-
         # AI Analysis navigation button
         if st.button("🤖 Discuss with AI Assistant", type="secondary", help="Chat with AI about this attack analysis"):
             st.session_state['switch_to_ai_tab'] = True
