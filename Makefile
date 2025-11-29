@@ -19,29 +19,29 @@ all: generate build
 
 # 1. Generate Go bindings from C code
 generate:
-	@echo "[*] Generating eBPF bindings..."
+	@echo "Generating eBPF bindings..."
 	go generate ./...
 
 # 2. Build the Go binary
 build: generate
-	@echo "[*] Building binary..."
+	@echo "Building binary..."
 	go build -o $(BINARY_NAME) ./cmd/ebpf-monitor
 
 # 3. Install to system (Requires Root)
 install: build
-	@echo "[*] Installing to $(INSTALL_BIN)..."
+	@echo "Installing to $(INSTALL_BIN)..."
 	@mkdir -p $(CONFIG_DIR)
 	@cp $(BINARY_NAME) $(INSTALL_BIN)
 	@chmod 755 $(INSTALL_BIN)
 	@# Only copy config if it doesn't exist to prevent overwriting custom settings
 	@if [ ! -f $(CONFIG_DIR)/config.json ]; then \
-		echo "[*] Installing default config to $(CONFIG_DIR)/config.json..."; \
+		echo "Installing default config to $(CONFIG_DIR)/config.json..."; \
 		cp $(CONFIG_SRC) $(CONFIG_DIR)/config.json; \
 		chmod 600 $(CONFIG_DIR)/config.json; \
 	else \
 		echo "[!] Config exists, skipping overwrite."; \
 	fi
-	@echo "[*] Installing Systemd Service..."
+	@echo "Installing Systemd Service..."
 	@cp $(SCRIPTS_DIR)/$(SERVICE_NAME).service $(SYSTEMD_DIR)/$(SERVICE_NAME).service
 	@systemctl daemon-reload
 	@systemctl enable $(SERVICE_NAME)
@@ -63,14 +63,14 @@ logs:
 
 # 4. Cleanup
 clean:
-	@echo "[*] Cleaning up..."
+	@echo "Cleaning up..."
 	rm -f $(BINARY_NAME)
 	rm -f cmd/ebpf-monitor/bpf_bpf.go cmd/ebpf-monitor/bpf_bpf.o
 	rm -rf build/
 
 # 5. Full Uninstall
 uninstall:
-	@echo "[*] Uninstalling..."
+	@echo "Uninstalling..."
 	-systemctl stop $(SERVICE_NAME)
 	-systemctl disable $(SERVICE_NAME)
 	rm -f $(INSTALL_BIN)
@@ -80,7 +80,7 @@ uninstall:
 
 # 6. Build Debian Package
 package: build
-	@echo "[*] Building Debian package with nfpm (version: $(VERSION))..."
+	@echo "Building Debian package with nfpm (version: $(VERSION))..."
 	@mkdir -p build
 	@which nfpm > /dev/null || (echo "[!] nfpm not found. Install it first." && exit 1)
 	@sed 's/version: .*/version: "$(VERSION)"/' nfpm.yaml > build/nfpm.yaml.tmp

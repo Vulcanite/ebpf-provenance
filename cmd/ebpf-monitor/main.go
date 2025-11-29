@@ -131,7 +131,7 @@ func setupES() {
 	host = strings.TrimPrefix(host, "https://")
 
 	url := fmt.Sprintf("%s://%s:%d", protocol, host, cfg.ESConfig.Port)
-	fmt.Printf("[*] Connecting to Elasticsearch at %s ...\n", url)
+	fmt.Printf("Connecting to Elasticsearch at %s ...\n", url)
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{url},
@@ -195,7 +195,7 @@ func main() {
 	go func() {
 		for sig := range sigChan {
 			if sig == syscall.SIGHUP {
-				fmt.Println("[*] SIGHUP: Rotating logs...")
+				fmt.Println("SIGHUP: Rotating logs...")
 				fileLock.Lock()
 				outputFile.Close()
 				setupLogging()
