@@ -21,7 +21,7 @@ import ollama_agent
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 CONFIG_PATH = "/var/config.json"
-ANALYZER_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "analyzer.py")
+ANALYZER_SCRIPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "analyzer.py")
 
 def load_config():
     if not os.path.exists(CONFIG_PATH):
@@ -257,7 +257,7 @@ st.title("eBPF Forensic Monitor")
 config = load_config()
 es_config = config.get("es_config", {})
 es = connect_elasticsearch(es_config)
-es_index = config.get("es_index", "ebpf-events")
+es_index = es_config.get("es_index", "ebpf-events")
 output_dir = config.get("output_dir", ".")
 events_dir = config.get("events_dir", ".")
 
@@ -381,7 +381,7 @@ with tab2:
     with st.expander("⚙️ Advanced Filtering Options", expanded=True):
         col1, col5 = st.columns(2)
         with col1:
-            disable_filtering = st.checkbox("Disable Event Filtering", value=True, help="Show all events (not recommended for large datasets)")
+            disable_filtering = st.checkbox("Disable Event Filtering", value=False, help="Show all events (not recommended for large datasets)")
 
         with col5:
             prune_noise = st.checkbox("Prune High-Degree Files", value=False, help="Remove files accessed by many processes (system noise)")
