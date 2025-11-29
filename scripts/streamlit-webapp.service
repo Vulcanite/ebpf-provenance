@@ -1,0 +1,17 @@
+[Unit]
+Description=Streamlit eBPF Forensic Web Application
+After=network.target elasticsearch.service
+
+[Service]
+Type=simple
+WorkingDirectory=${PROJECT_ROOT}/web
+ExecStart=${PROJECT_ROOT}/web/venv/bin/python -m streamlit run webapp.py --server.port=8501 --server.address=0.0.0.0
+Restart=always
+RestartSec=5s
+User=root
+Group=root
+Environment="PATH=${PROJECT_ROOT}/web/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EnvironmentFile=-/etc/default/streamlit-webapp
+
+[Install]
+WantedBy=multi-user.target

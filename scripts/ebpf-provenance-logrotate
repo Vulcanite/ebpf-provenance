@@ -1,0 +1,20 @@
+# Logrotate configuration for eBPF Provenance Monitoring
+# Install to: /etc/logrotate.d/ebpf-provenance
+
+/var/monitoring/events/events.jsonl {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0644 root root
+    dateext
+    dateformat -%Y%m%d
+    postrotate
+        # Send SIGHUP to ebpf-monitor to reopen log file
+        if systemctl is-active --quiet ebpf-monitor.service; then
+            systemctl kill -s HUP ebpf-monitor.service 2>/dev/null || true
+        fi
+    endscript
+}

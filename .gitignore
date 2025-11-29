@@ -1,9 +1,15 @@
 # --- eBPF Generated Files (bpf2go) ---
 *.o
+bpf_bpf.go
+bpf_bpf.o
+
+# --- Build Directory ---
+build/
 
 # --- Packaging (nfpm) ---
 *.deb
 *.rpm
+*.tar.gz
 
 # --- Editors/IDEs ---
 .vscode/
@@ -11,6 +17,7 @@
 *.swp
 *.swo
 .claude/
+.DS_Store
 
 # --- Python ---
 *.pyc
