@@ -93,13 +93,6 @@ The script automatically creates `/etc/default/streamlit-webapp`:
 PROJECT_ROOT=/path/to/ebpf-provenance
 ```
 
-**Manual run after setup:**
-```bash
-cd web
-source venv/bin/activate
-streamlit run webapp.py --server.port=8501 --server.address=0.0.0.0
-```
-
 **Service management:**
 ```bash
 sudo systemctl start streamlit-webapp
@@ -124,33 +117,6 @@ sudo ./es-setup.sh
 5. Displays initial elastic password
 6. Tests connection
 
-**Post-installation:**
-```bash
-# Update credentials in config
-sudo nano /var/config.json
-
-# Update:
-{
-  "es_config": {
-    "es_user": "elastic",
-    "es_password": "YOUR_PASSWORD_HERE",
-    ...
-  }
-}
-
-# Restart monitor to use new credentials
-sudo systemctl restart ebpf-monitor
-```
-
-**Testing:**
-```bash
-# Test connection
-curl -k -u elastic:password https://localhost:9200
-
-# Check index
-curl -k -u elastic:password https://localhost:9200/ebpf-events/_count
-```
-
 ### ollama-setup.sh
 
 Installs Ollama for AI-powered analysis.
@@ -169,11 +135,6 @@ sudo ./ollama-setup.sh
 ```bash
 # Pull a model (choose one)
 ollama pull llama3        # General purpose (4.7GB)
-ollama pull mistral       # Fast and efficient (4.1GB)
-ollama pull llama3:70b    # Most capable (39GB)
-
-# Test
-ollama run llama3 "Explain what eBPF is in one sentence"
 ```
 
 **Using with web app:**
@@ -271,15 +232,6 @@ PROJECT_ROOT=/path/to/your/ebpf-provenance
 
 Template for the environment file.
 
-**Usage:**
-```bash
-# Automatically created by streamlit-setup.sh
-# Manual installation:
-sudo cp streamlit-webapp.env /etc/default/streamlit-webapp
-sudo nano /etc/default/streamlit-webapp
-# Update PROJECT_ROOT to your installation path
-```
-
 ## Log Rotation
 
 ### ebpf-provenance-logrotate
@@ -314,18 +266,6 @@ Logrotate configuration for automatic log management.
 }
 ```
 
-**Manual rotation:**
-```bash
-# Test configuration
-sudo logrotate -d /etc/logrotate.d/ebpf-provenance
-
-# Force rotation
-sudo logrotate -f /etc/logrotate.d/ebpf-provenance
-
-# View rotated logs
-ls -lah /var/monitoring/events/
-```
-
 ## Package Scripts
 
 ### postinstall.sh
@@ -349,225 +289,3 @@ Runs before .deb package removal.
 - Clean up (but preserve config)
 
 **Location:** Called by nfpm during package removal
-
-## Common Workflows
-
-### Fresh Installation
-
-```bash
-# 1. Install build dependencies
-cd scripts
-sudo ./build-setup.sh
-
-# 2. Build and install monitor
-cd ..
-make build
-sudo make install
-
-# 3. Install Elasticsearch (optional)
-cd scripts
-sudo ./es-setup.sh
-
-# 4. Update config with ES credentials
-sudo nano /var/config.json
-
-# 5. Install web application
-sudo ./streamlit-setup.sh
-
-# 6. Install Ollama (optional)
-sudo ./ollama-setup.sh
-ollama pull llama3
-
-# 7. Start services
-sudo systemctl start ebpf-monitor
-sudo systemctl start streamlit-webapp
-
-# 8. Access web interface
-# http://localhost:8501
-```
-
-### Development Setup
-
-```bash
-# Install build tools
-sudo ./build-setup.sh
-
-# Don't install as service - run manually for development
-cd ..
-make build
-
-# Run monitor manually
-sudo ./ebpf-monitor
-
-# In another terminal, run web app manually
-cd web
-source venv/bin/activate
-streamlit run webapp.py
-```
-
-### Update Installation
-
-```bash
-# Stop services
-sudo systemctl stop ebpf-monitor
-sudo systemctl stop streamlit-webapp
-
-# Update code
-git pull
-
-# Rebuild
-make clean
-make generate
-make build
-
-# Update installation
-sudo cp ebpf-monitor /usr/bin/
-
-# Update web dependencies (if changed)
-cd web
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Restart services
-sudo systemctl start ebpf-monitor
-sudo systemctl start streamlit-webapp
-```
-
-## Troubleshooting
-
-### Build Setup Issues
-
-**Error: "Package not found"**
-```bash
-# Update package lists
-sudo apt-get update
-sudo apt-get upgrade
-
-# Retry
-sudo ./build-setup.sh
-```
-
-**Wrong kernel headers installed:**
-```bash
-# Check current kernel
-uname -r
-
-# Install matching headers
-sudo apt-get install linux-headers-$(uname -r)
-```
-
-### Streamlit Setup Issues
-
-**Python 3.12 installation fails:**
-```bash
-# Ensure PPA is added correctly
-sudo add-apt-repository -y ppa:deadsnakes/ppa
-sudo apt-get update
-sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
-```
-
-**Virtual environment creation fails:**
-```bash
-# Install venv module
-sudo apt-get install python3.12-venv
-
-# Retry
-cd ../web
-python3.12 -m venv venv
-```
-
-**Service won't start:**
-```bash
-# Check environment file
-cat /etc/default/streamlit-webapp
-
-# Ensure PROJECT_ROOT is correct
-sudo nano /etc/default/streamlit-webapp
-
-# Test manually
-cd /path/to/project/web
-source venv/bin/activate
-streamlit run webapp.py
-```
-
-### Elasticsearch Setup Issues
-
-**Installation fails:**
-```bash
-# Check if repository was added
-ls /etc/apt/sources.list.d/ | grep elastic
-
-# Manually add if missing
-wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
-echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
-sudo apt-get update
-sudo apt-get install elasticsearch
-```
-
-**Cannot connect to Elasticsearch:**
-```bash
-# Check service status
-sudo systemctl status elasticsearch
-
-# Check if listening
-sudo netstat -tlnp | grep 9200
-
-# View ES logs
-sudo journalctl -u elasticsearch -n 100
-
-# Reset elastic password
-sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
-```
-
-### Logrotate Issues
-
-**Logs not rotating:**
-```bash
-# Check configuration
-sudo logrotate -d /etc/logrotate.d/ebpf-provenance
-
-# Check logrotate status
-sudo cat /var/lib/logrotate/status | grep ebpf
-
-# Force rotation
-sudo logrotate -f /etc/logrotate.d/ebpf-provenance
-```
-
-**SIGHUP not working:**
-```bash
-# Test manually
-sudo systemctl kill -s HUP ebpf-monitor.service
-
-# Check monitor logs
-sudo journalctl -u ebpf-monitor -n 20
-```
-
-## Security Considerations
-
-### Service Accounts
-
-For production, consider running services as non-root:
-
-```bash
-# Create service user
-sudo useradd -r -s /bin/false ebpf-monitor
-
-# Update service file
-# User=ebpf-monitor
-# Group=ebpf-monitor
-
-# Grant CAP_BPF capability
-sudo setcap cap_bpf+ep /usr/bin/ebpf-monitor
-```
-
-### File Permissions
-
-```bash
-# Secure config file
-sudo chmod 600 /var/config.json
-
-# Secure monitoring directories
-sudo chmod 755 /var/monitoring
-sudo chmod 700 /var/monitoring/events
-sudo chmod 700 /var/monitoring/outputs
-```
